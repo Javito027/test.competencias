@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Test Competencias</title>
+  <style>
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      margin: 0;
+      padding: 0;
+      background: #f4f6f9;
+      color: #333;
+    }
+
+    .container {
+      max-width: 800px;
+      margin: auto;
+      padding: 20px;
+    }
+
+    h2 {
+      color: #2c3e50;
+      margin-bottom: 20px;
+    }
+
+    .menu {
+      display: flex;
+      flex-direction: column;
+      gap: 15px;
+      align-items: center;
+    }
+
+    .question {
+      background: #fff;
+      border-radius: 10px;
+      padding: 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.05);
+    }
+
+    .question strong {
+      display: block;
+      margin-bottom: 10px;
+    }
+
+    .options label {
+      display: block;
+      margin-top: 8px;
+    }
+
+    button {
+      padding: 10px 20px;
+      background-color: #3498db;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+      font-size: 1em;
+      transition: background-color 0.3s;
+    }
+
+    button:hover {
+      background-color: #2980b9;
+    }
+
+    .correct {
+      color: green;
+      font-weight: bold;
+    }
+
+    .incorrect {
+      color: red;
+      font-weight: bold;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    #examResult, #studySummary {
+      background: #ecf0f1;
+      padding: 15px;
+      border-radius: 8px;
+      margin-top: 20px;
+      font-size: 1.1em;
+    }
+
+    #studyNext {
+      margin-top: 15px;
+    }
+
+    @media (max-width: 600px) {
+      .container {
+        padding: 10px;
+      }
+
+      button {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div id="menu" class="menu">
+      <h2>Modo de Test</h2>
+      <button onclick="startExam()">Modo Examen</button>
+      <button onclick="startStudy()">Modo Estudio</button>
+    </div>
+
+    <div id="examMode" class="hidden">
+      <h2>Modo Examen</h2>
+      <div id="examQuestions"></div>
+      <button onclick="checkExam()">Corregir Examen</button>
+      <div id="examResult"></div>
+      <button onclick="goMenu()">Volver al menú</button>
+    </div>
+
+    <div id="studyMode" class="hidden">
+      <h2>Modo Estudio</h2>
+      <div id="studyQuestion"></div>
+      <button id="studyNext" onclick="nextStudyQuestion()">Siguiente</button>
+      <button onclick="goMenu()">Volver al menú</button>
+      <div id="studySummary"></div>
+    </div>
+  </div>
+
+  <script>
+    const questions = [
+      // Administración General del Estado
+      { text: "La aprobación de la normativa técnica básica, la aprobación de las normas básicas y mínimas", category: "Administración General del Estado" },
+      { text: "La determinación del cuadro de las enfermedades y discapacidades que inhabilitan", category: "Administración General del Estado" },
+      { text: "La coordinación de la prestación de la asistencia sanitaria en las vías públicas o de uso público", category: "Administración General del Estado" },
+      { text: "La regulación del transporte de mercancías", category: "Administración General del Estado" },
+
+      // Ministerio del Interior
+      { text: "La expedición y revisión de los permisos y licencias", category: "Ministerio del Interior" },
+      { text: "La autorización especial para conducir vehículos que transporten mercancías peligrosas", category: "Ministerio del Interior" },
+      { text: "El canje", category: "Ministerio del Interior" },
+      { text: "Las autorizaciones de apertura de centros de formación de conductores", category: "Ministerio del Interior" },
+      { text: "La matriculación y expedición de los permisos de circulación", category: "Ministerio del Interior" },
+      { text: "Las autorizaciones o permisos temporales y provisionales para la circulación de vehículos", category: "Ministerio del Interior" },
+      { text: "Las normas especiales que posibiliten la circulación de vehículos históricos", category: "Ministerio del Interior" },
+      { text: "La retirada de los vehículos de la vía fuera de poblado y la baja temporal o definitiva de la circulación de dichos vehículos", category: "Ministerio del Interior" },
+      { text: "La vigilancia y disciplina del tráfico en toda clase de vías interurbanas y en travesías cuando no exista policía local", category: "Ministerio del Interior" },
+      { text: "La regulación, ordenación y gestión del tráfico en vías interurbanas y en travesías", category: "Ministerio del Interior" },
+      { text: "Las directrices básicas y esenciales para la formación y actuación de los agentes de la autoridad encargados de la vigilancia del tráfico", category: "Ministerio del Interior" },
+      { text: "La autorización de pruebas deportivas que tengan que celebrarse utilizando en todo o parte del recorrido carreteras estatales o travesías", category: "Ministerio del Interior" },
+      { text: "El cierre a la circulación de carreteras o tramos de ellas por razones de seguridad o fluidez del tráfico", category: "Ministerio del Interior" },
+      { text: "La coordinación de la estadística y la investigación de accidentes de tráfico", category: "Ministerio del Interior" },
+      { text: "La realización de las pruebas alcohólica, o por drogas", category: "Ministerio del Interior" },
+
+      // Municipios
+      { text: "La retirada de los vehículos de las vías urbanas y su posterior depósito cuando obstaculicen, dificulten o supongan un peligro", category: "Municipios" },
+      { text: "Las bicicletas sólo podrán ser retiradas y llevadas al depósito si están abandonadas o dificultan la circulación", category: "Municipios" },
+      { text: "La retirada de vehículos en las vías interurbanas y el posterior depósito", category: "Municipios" },
+      { text: "La autorización de pruebas deportivas por el casco urbano, exceptuadas las travesías", category: "Municipios" },
+      { text: "La realización de las pruebas a que alude el artículo 5.o en las vías urbanas", category: "Municipios" },
+      { text: "La restricción de la circulación por motivos medioambientales", category: "Municipios" }
+    ];
+
+    let studyIndex = 0;
+    let studyQuestions = [];
+    let examQuestions = [];
+    let studyStats = { correct: 0, incorrect: 0 };
+
+    function goMenu() {
+      document.getElementById("menu").classList.remove("hidden");
+      document.getElementById("examMode").classList.add("hidden");
+      document.getElementById("studyMode").classList.add("hidden");
+      document.getElementById("studySummary").innerHTML = "";
+    }
+
+    function startExam() {
+      examQuestions = [...questions].sort(() => Math.random() - 0.5);
+      document.getElementById("menu").classList.add("hidden");
+      document.getElementById("examMode").classList.remove("hidden");
+
+      let examHTML = "";
+      examQuestions.forEach((q, i) => {
+        examHTML += `
+          <div class="question" id="examQ${i}">
+            <strong>${i + 1}. ${q.text}</strong><br>
+            <label><input type="radio" name="q${i}" value="Administración General del Estado"> Administración General del Estado</label>
+            <label><input type="radio" name="q${i}" value="Ministerio del Interior"> Ministerio del Interior</label>
+            <label><input type="radio" name="q${i}" value="Municipios"> Municipios</label>
+            <div class="correction" id="examCorr${i}"></div>
+          </div>
+        `;
+      });
+      document.getElementById("examQuestions").innerHTML = examHTML;
+      document.getElementById("examResult").innerHTML = "";
+    }
+
+    function checkExam() {
+      let score = 0;
+      examQuestions.forEach((q, i) => {
+        const selected = document.querySelector(`input[name="q${i}"]:checked`);
+        const correction = document.getElementById(`examCorr${i}`);
+        if (selected) {
+          if (selected.value === q.category) {
+            correction.innerHTML = "<span class='correct'>Correcto</span>";
+            score++;
+          } else {
+            correction.innerHTML = `<span class='incorrect'>Incorrecto. La respuesta correcta es: ${q.category}</span>`;
+          }
+        } else {
+          correction.innerHTML = `<span class='incorrect'>No respondido. La respuesta correcta es: ${q.category}</span>`;
+        }
+      });
+      document.getElementById("examResult").innerHTML = `<h3>Has acertado ${score} de ${examQuestions.length}</h3>`;
+    }
+
+    function startStudy() {
+      studyQuestions = [...questions].sort(() => Math.random() - 0.5);
+      studyIndex = 0;
+      studyStats = { correct: 0, incorrect: 0 };
+      document.getElementById("menu").classList.add("hidden");
+      document.getElementById("studyMode").classList.remove("hidden");
+      showStudyQuestion();
+    }
+
+    function showStudyQuestion() {
+      if (studyIndex >= studyQuestions.length) {
+        document.getElementById("studyQuestion").innerHTML = "<h3>Fin del modo estudio.</h3>";
+        document.getElementById("studyNext").style.display = "none";
+        document.getElementById("studySummary").innerHTML = `
+          <h3>Resumen:</h3>
+          <p>Aciertos: ${studyStats.correct}</p>
+          <p>Errores: ${studyStats.incorrect}</p>
+        `;
+        return;
+      }
+      const q = studyQuestions[studyIndex];
+      document.getElementById("studyQuestion").innerHTML = `
+        <div class="question">
+          <strong>${studyIndex + 1}. ${q.text}</strong><br>
+          <div class="options">
+            <label><input type="radio" name="study" value="Administración General del Estado"> Administración General del Estado</label>
+            <label><input type="radio" name="study" value="Ministerio del Interior"> Ministerio del Interior</label>
+            <label><input type="radio" name="study" value="Municipios"> Municipios</label>
+          </div>
+          <button onclick="checkStudyAnswer()">Responder</button>
+          <div id="studyFeedback"></div>
+        </div>
+      `;
+      document.getElementById("studyNext").style.display = "none";
+    }
+
+    function checkStudyAnswer() {
+      const q = studyQuestions[studyIndex];
+      const selected = document.querySelector(`input[name="study"]:checked`);
+      if (!selected) {
+        alert("Elige una opción");
+        return;
+      }
+      const feedback = document.getElementById("studyFeedback");
+      if (selected.value === q.category) {
+        feedback.innerHTML = "<span class='correct'>¡Correcto!</span>";
+        studyStats.correct++;
+      } else {
+        feedback.innerHTML = `<span class='incorrect'>Incorrecto. La respuesta correcta es: ${q.category}</span>`;
+        studyStats.incorrect++;
+      }
+      document.getElementById("studyNext").style.display = "block";
+    }
+
+    function nextStudyQuestion() {
+      studyIndex++;
+      showStudyQuestion();
+    }
+  </script>
+</body>
+</html>
+
